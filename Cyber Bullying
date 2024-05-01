@@ -1,0 +1,65 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+data = pd.read_csv('d1.csv')
+data = data.drop('relations', axis='columns')
+data = data.drop('diagnosis', axis='columns')
+data = data.drop('id_1', axis='columns')
+data = data.drop('id_2', axis='columns')
+data = data.drop('id_3', axis='columns')
+data = data.drop('start_offset_1', axis='columns')
+data = data.drop('end_offset_1', axis='columns')
+data = data.drop('start_offset_2', axis='columns')
+data = data.drop('end_offset_2', axis='columns')
+data = data.drop('start_offset_3', axis='columns')
+data = data.drop('end_offset_3', axis='columns')
+
+def get_dummies(data, data1):
+    data1 = data
+    data = pd.get_dummies(data['label_1'], columns='0')
+    print(pd.concat([data1, data], axis='columns'))
+
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+
+def encoding_(data):
+    for i in data:
+        data[i] = le.fit_transform(data[i])
+        # get X and y
+        '''
+        for i in range(len(dir(data))):
+            print(i)'''
+# encoding_(data)
+for i in data:
+    data[i] = le.fit_transform(data[i])
+
+# splitting training dataset dand datatest
+y1 = data.label_1
+y2 = data.label_2
+y3 = data.label_3
+Y = pd.concat([y1, y2, y3], axis='columns')
+
+X = data.drop('label_1',  axis='columns')
+X = X.drop('label_2', axis='columns')
+X = X.drop('label_3', axis='columns')
+print(X.size, y1.size)
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test = train_test_split(X,y1,test_size=0.33, random_state=42)
+from sklearn.linear_model import LogisticRegression
+log_ = LogisticRegression(max_iter=10000)
+
+def get_score(model, X_train, X_test, y_train, y_test):
+    model.fit(X_train, y_train) 
+    print(model.score(X_test, y_test))
+'''from sklearn.linear_model import LogisticRegression
+model = LogisticRegression(max_iter=1000000000)
+model.fit(x_train, y_train)'''
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVC
+import warnings 
+warnings.filterwarnings('ignore') 
+clf = GridSearchCV(SVC(gamma='auto'), {'C' : [1,10,20], 'kernel' : ['rbf', 'linear']}, cv=3, return_train_score=False)
+clf.fit(x_train, y_train)
+
+data_ = pd.DataFrame(clf.cv_results_)
+print(data)
